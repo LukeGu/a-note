@@ -13,7 +13,7 @@ import { NoteDTO } from './note.dto';
 import { NoteService } from './note.service';
 import { ValidationPipe } from 'src/shared/validation.pipe';
 
-@Controller('note')
+@Controller('api/note')
 export class NoteController {
   private logger = new Logger('NoteController');
   constructor(private noteService: NoteService) {}

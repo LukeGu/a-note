@@ -7,9 +7,10 @@ import { AppService } from './app.service';
 import { NoteModule } from './note/note.module';
 import { HttpErrorFilter } from './shared/http-error.filter';
 import { LoggingInterceptor } from './shared/logging.interceptor';
+import { UserModule } from './user/user.module';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(), NoteModule],
+  imports: [TypeOrmModule.forRoot(), NoteModule, UserModule],
   controllers: [AppController],
   providers: [
     AppService,
