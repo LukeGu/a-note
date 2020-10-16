@@ -1,4 +1,5 @@
 import { IsNotEmpty } from 'class-validator';
+import { NoteEntity } from 'src/note/note.entity';
 
 export class UserDTO {
   @IsNotEmpty()
@@ -13,4 +14,5 @@ export class UserRO {
   created: Date;
   username: string;
   token?: string;
+  notes: NoteEntity[];
 }

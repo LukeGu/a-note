@@ -3,48 +3,87 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { NoteEntity } from './note.entity';
-import { NoteDTO } from './note.dto';
+import { UserEntity } from 'src/user/user.entity';
+import { NoteDTO, NoteRO } from './note.dto';
 
 @Injectable()
 export class NoteService {
   constructor(
     @InjectRepository(NoteEntity)
     private noteRepository: Repository<NoteEntity>,
+    @InjectRepository(UserEntity)
+    private userRepository: Repository<UserEntity>,
   ) {}
 
-  async showAll() {
-    return await this.noteRepository.find();
+  private toResponseObject(note: NoteEntity): NoteRO {
+    return { ...note, author: note.author.toResponseObject(false) };
   }
 
-  async create(data: NoteDTO) {
-    this.noteRepository.create(data);
-    return await this.noteRepository.save(data);
+  private ensureOwnership(note: NoteEntity, userId: string) {
+    if (note.author.id !== userId)
+      throw new HttpException('Incorrect user', HttpStatus.UNAUTHORIZED);
   }
 
-  async read(id: string) {
-    const note = await this.noteRepository.findOne({ id });
+  async showAll(): Promise<NoteRO[]> {
+    const notes = await this.noteRepository.find({ relations: ['author'] });
+    return notes.map(note => this.toResponseObject(note));
+  }
+
+  async create(userId: string, data: NoteDTO): Promise<NoteRO> {
+    const user = await this.userRepository.findOne({ id: userId });
+    this.noteRepository.create({
+      ...data,
+      author: user,
+    });
+    const note = await this.noteRepository.save({
+      ...data,
+      author: user,
+    });
+    return this.toResponseObject(note);
+  }
+
+  async read(id: string): Promise<NoteRO> {
+    const note = await this.noteRepository.findOne({
+      where: { id },
+      relations: ['author'],
+    });
     if (!note) {
       throw new HttpException('Not found', HttpStatus.NOT_FOUND);
     }
-    return note;
+    return this.toResponseObject(note);
   }
 
-  async update(id: string, data: Partial<NoteDTO>) {
-    let note = await this.noteRepository.findOne({ id });
+  async update(
+    id: string,
+    userId: string,
+    data: Partial<NoteDTO>,
+  ): Promise<NoteRO> {
+    let note = await this.noteRepository.findOne({
+      where: { id },
+      relations: ['author'],
+    });
     if (!note) {
       throw new HttpException('Not found', HttpStatus.NOT_FOUND);
     }
+    this.ensureOwnership(note, userId);
     await this.noteRepository.update({ id }, data);
-    note = await this.noteRepository.findOne({ id });
-    return note;
+    note = await this.noteRepository.findOne({
+      where: { id },
+      relations: ['author'],
+    });
+    return this.toResponseObject(note);
   }
 
-  async destory(id: string) {
-    const note = await this.noteRepository.findOne({ id });
+  async destory(id: string, userId: string) {
+    const note = await this.noteRepository.findOne({
+      where: { id },
+      relations: ['author'],
+    });
     if (!note) {
       throw new HttpException('Not found', HttpStatus.NOT_FOUND);
     }
+    this.ensureOwnership(note, userId);
     await this.noteRepository.delete({ id });
-    return note;
+    return this.toResponseObject(note);
   }
 }
