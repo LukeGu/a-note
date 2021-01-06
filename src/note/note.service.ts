@@ -20,11 +20,11 @@ export class NoteService {
       ...note,
       author: note.author.toResponseObject(false),
     };
-    if (resObj.like) {
-      resObj.like = note.like.length;
+    if (resObj.likes) {
+      resObj.likes = note.likes.length;
     }
-    if (resObj.dislike) {
-      resObj.dislike = note.dislike.length;
+    if (resObj.dislikes) {
+      resObj.dislikes = note.dislikes.length;
     }
     return resObj;
   }
@@ -33,10 +33,31 @@ export class NoteService {
     if (note.author.id !== userId)
       throw new HttpException('Incorrect user', HttpStatus.UNAUTHORIZED);
   }
-
+  // ****** like/dislike handler ******
+  private async vote(note: NoteEntity, user: UserEntity, action: string) {
+    const opposite = action === 'likes' ? 'dislikes' : 'likes';
+    if (
+      note[action].filter(item => item.id === user.id).length > 0 ||
+      note[opposite].filter(item => item.id === user.id).length > 0
+    ) {
+      note[action] = note[action].filter(item => item.id !== user.id);
+      note[opposite] = note[opposite].filter(item => item.id !== user.id);
+      await this.noteRepository.save(note);
+    } else if (note[action].filter(item => item.id === user.id).length === 0) {
+      note[action].push(user);
+      await this.noteRepository.save(note);
+    } else {
+      throw new HttpException(
+        'Unable to cast the vote',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return note;
+  }
+  // ****** note CRUD features ******
   async showAll(): Promise<NoteRO[]> {
     const notes = await this.noteRepository.find({
-      relations: ['author', 'like', 'dislike'],
+      relations: ['author', 'likes', 'dislikes'],
     });
     return notes.map(note => this.toResponseObject(note));
   }
@@ -57,7 +78,7 @@ export class NoteService {
   async read(id: string): Promise<NoteRO> {
     const note = await this.noteRepository.findOne({
       where: { id },
-      relations: ['author'],
+      relations: ['author', 'likes', 'dislikes'],
     });
     if (!note) {
       throw new HttpException('Not found', HttpStatus.NOT_FOUND);
@@ -99,6 +120,32 @@ export class NoteService {
     return this.toResponseObject(note);
   }
 
+  // ****** vote features ******
+  async like(id: string, userId: string) {
+    let note = await this.noteRepository.findOne({
+      where: { id },
+      relations: ['author', 'likes', 'dislikes'],
+    });
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+    note = await this.vote(note, user, 'likes');
+    return this.toResponseObject(note);
+  }
+
+  async dislike(id: string, userId: string) {
+    let note = await this.noteRepository.findOne({
+      where: { id },
+      relations: ['author', 'likes', 'dislikes'],
+    });
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+    note = await this.vote(note, user, 'dislikes');
+    return this.toResponseObject(note);
+  }
+
+  // ****** bookmark features ******
   async bookmark(id: string, userId: string) {
     const note = await this.noteRepository.findOne({
       where: { id },
@@ -107,7 +154,6 @@ export class NoteService {
       where: { id: userId },
       relations: ['bookmarks'],
     });
-
     if (user.bookmarks.filter(bk => bk.id === note.id).length === 0) {
       user.bookmarks.push(note);
       await this.userRepository.save(user);
@@ -128,7 +174,6 @@ export class NoteService {
       where: { id: userId },
       relations: ['bookmarks'],
     });
-
     if (user.bookmarks.filter(bk => bk.id === note.id).length > 0) {
       user.bookmarks = user.bookmarks.filter(bk => bk.id !== note.id);
       await this.userRepository.save(user);

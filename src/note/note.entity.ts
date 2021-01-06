@@ -34,9 +34,9 @@ export class NoteEntity {
 
   @ManyToMany(type => UserEntity, { cascade: true })
   @JoinTable()
-  like: UserEntity[];
+  likes: UserEntity[];
 
   @ManyToMany(type => UserEntity, { cascade: true })
   @JoinTable()
-  dislike: UserEntity[];
+  dislikes: UserEntity[];
 }

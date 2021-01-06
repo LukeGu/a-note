@@ -64,12 +64,27 @@ export class NoteController {
     return this.noteService.destory(id, userId);
   }
 
+  @Post(':id/like')
+  @UseGuards(new AuthGuard())
+  likesNote(@Param('id') id: string, @User('id') userId: string) {
+    this.logData({ id, userId });
+    return this.noteService.like(id, userId);
+  }
+
+  @Post(':id/dislike')
+  @UseGuards(new AuthGuard())
+  dislikesNote(@Param('id') id: string, @User('id') userId: string) {
+    this.logData({ id, userId });
+    return this.noteService.dislike(id, userId);
+  }
+
   @Post(':id/bookmark')
   @UseGuards(new AuthGuard())
   bookmarkNote(@Param('id') id: string, @User('id') userId: string) {
     this.logData({ id, userId });
     return this.noteService.bookmark(id, userId);
   }
+
   @Delete(':id/bookmark')
   @UseGuards(new AuthGuard())
   unbookmarkNote(@Param('id') id: string, @User('id') userId: string) {
