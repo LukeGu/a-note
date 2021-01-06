@@ -16,4 +16,6 @@ export class NoteRO {
   title: string;
   description: string;
   author: UserRO;
+  like?: number;
+  dislike?: number;
 }

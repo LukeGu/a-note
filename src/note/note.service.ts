@@ -16,7 +16,17 @@ export class NoteService {
   ) {}
 
   private toResponseObject(note: NoteEntity): NoteRO {
-    return { ...note, author: note.author.toResponseObject(false) };
+    const resObj: any = {
+      ...note,
+      author: note.author.toResponseObject(false),
+    };
+    if (resObj.like) {
+      resObj.like = note.like.length;
+    }
+    if (resObj.dislike) {
+      resObj.dislike = note.dislike.length;
+    }
+    return resObj;
   }
 
   private ensureOwnership(note: NoteEntity, userId: string) {
@@ -25,7 +35,9 @@ export class NoteService {
   }
 
   async showAll(): Promise<NoteRO[]> {
-    const notes = await this.noteRepository.find({ relations: ['author'] });
+    const notes = await this.noteRepository.find({
+      relations: ['author', 'like', 'dislike'],
+    });
     return notes.map(note => this.toResponseObject(note));
   }
 
@@ -85,5 +97,47 @@ export class NoteService {
     this.ensureOwnership(note, userId);
     await this.noteRepository.delete({ id });
     return this.toResponseObject(note);
+  }
+
+  async bookmark(id: string, userId: string) {
+    const note = await this.noteRepository.findOne({
+      where: { id },
+    });
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['bookmarks'],
+    });
+
+    if (user.bookmarks.filter(bk => bk.id === note.id).length === 0) {
+      user.bookmarks.push(note);
+      await this.userRepository.save(user);
+    } else {
+      throw new HttpException(
+        'Note already bookmarked.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return user.toResponseObject();
+  }
+
+  async unbookmark(id: string, userId: string) {
+    const note = await this.noteRepository.findOne({
+      where: { id },
+    });
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['bookmarks'],
+    });
+
+    if (user.bookmarks.filter(bk => bk.id === note.id).length > 0) {
+      user.bookmarks = user.bookmarks.filter(bk => bk.id !== note.id);
+      await this.userRepository.save(user);
+    } else {
+      throw new HttpException(
+        'Cannot find the bookmark.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return user.toResponseObject();
   }
 }

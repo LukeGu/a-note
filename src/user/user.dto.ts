@@ -15,4 +15,5 @@ export class UserRO {
   username: string;
   token?: string;
   notes: NoteEntity[];
+  bookmarks?: NoteEntity[];
 }

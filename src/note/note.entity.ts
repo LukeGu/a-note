@@ -6,6 +6,8 @@ import {
   UpdateDateColumn,
   Column,
   ManyToOne,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 
 @Entity('note')
@@ -29,4 +31,12 @@ export class NoteEntity {
     author => author.notes,
   )
   author: UserEntity;
+
+  @ManyToMany(type => UserEntity, { cascade: true })
+  @JoinTable()
+  like: UserEntity[];
+
+  @ManyToMany(type => UserEntity, { cascade: true })
+  @JoinTable()
+  dislike: UserEntity[];
 }

@@ -3,6 +3,9 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -10,6 +13,7 @@ import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { UserRO } from './user.dto';
 import { NoteEntity } from 'src/note/note.entity';
+import { type } from 'os';
 
 @Entity('user')
 export class UserEntity {
@@ -34,6 +38,10 @@ export class UserEntity {
   )
   notes: NoteEntity[];
 
+  @ManyToMany(type => NoteEntity, { cascade: true })
+  @JoinTable()
+  bookmarks: NoteEntity[];
+
   @BeforeInsert()
   async hashPassword() {
     this.password = await bcrypt.hash(this.password, 10);
@@ -47,6 +55,9 @@ export class UserEntity {
     }
     if (this.notes) {
       responseObj.notes = this.notes;
+    }
+    if (this.bookmarks) {
+      responseObj.bookmarks = this.bookmarks;
     }
     return responseObj;
   }

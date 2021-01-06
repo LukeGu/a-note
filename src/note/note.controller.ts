@@ -63,4 +63,17 @@ export class NoteController {
     this.logData({ id, userId });
     return this.noteService.destory(id, userId);
   }
+
+  @Post(':id/bookmark')
+  @UseGuards(new AuthGuard())
+  bookmarkNote(@Param('id') id: string, @User('id') userId: string) {
+    this.logData({ id, userId });
+    return this.noteService.bookmark(id, userId);
+  }
+  @Delete(':id/bookmark')
+  @UseGuards(new AuthGuard())
+  unbookmarkNote(@Param('id') id: string, @User('id') userId: string) {
+    this.logData({ id, userId });
+    return this.noteService.unbookmark(id, userId);
+  }
 }
