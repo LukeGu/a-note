@@ -57,7 +57,7 @@ export class NoteService {
   // ****** note CRUD features ******
   async showAll(): Promise<NoteRO[]> {
     const notes = await this.noteRepository.find({
-      relations: ['author', 'likes', 'dislikes'],
+      relations: ['author', 'likes', 'dislikes', 'comments'],
     });
     return notes.map(note => this.toResponseObject(note));
   }
@@ -78,7 +78,7 @@ export class NoteService {
   async read(id: string): Promise<NoteRO> {
     const note = await this.noteRepository.findOne({
       where: { id },
-      relations: ['author', 'likes', 'dislikes'],
+      relations: ['author', 'likes', 'dislikes', 'comments'],
     });
     if (!note) {
       throw new HttpException('Not found', HttpStatus.NOT_FOUND);
@@ -102,7 +102,7 @@ export class NoteService {
     await this.noteRepository.update({ id }, data);
     note = await this.noteRepository.findOne({
       where: { id },
-      relations: ['author'],
+      relations: ['author', 'comments'],
     });
     return this.toResponseObject(note);
   }
@@ -110,7 +110,7 @@ export class NoteService {
   async destory(id: string, userId: string) {
     const note = await this.noteRepository.findOne({
       where: { id },
-      relations: ['author'],
+      relations: ['author', 'comments'],
     });
     if (!note) {
       throw new HttpException('Not found', HttpStatus.NOT_FOUND);
@@ -124,7 +124,7 @@ export class NoteService {
   async like(id: string, userId: string) {
     let note = await this.noteRepository.findOne({
       where: { id },
-      relations: ['author', 'likes', 'dislikes'],
+      relations: ['author', 'likes', 'dislikes', 'comments'],
     });
     const user = await this.userRepository.findOne({
       where: { id: userId },
@@ -136,7 +136,7 @@ export class NoteService {
   async dislike(id: string, userId: string) {
     let note = await this.noteRepository.findOne({
       where: { id },
-      relations: ['author', 'likes', 'dislikes'],
+      relations: ['author', 'likes', 'dislikes', 'comments'],
     });
     const user = await this.userRepository.findOne({
       where: { id: userId },
@@ -163,7 +163,7 @@ export class NoteService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    return user.toResponseObject();
+    return user.toResponseObject(false);
   }
 
   async unbookmark(id: string, userId: string) {
@@ -183,6 +183,6 @@ export class NoteService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    return user.toResponseObject();
+    return user.toResponseObject(false);
   }
 }

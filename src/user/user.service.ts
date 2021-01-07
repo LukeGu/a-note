@@ -24,7 +24,7 @@ export class UserService {
     if (!user || !(await user.comparePassword(password))) {
       throw new HttpException('Invalid user/password', HttpStatus.BAD_REQUEST);
     }
-    return user.toResponseObject();
+    return user.toResponseObject(true);
   }
 
   async register(data: UserDTO): Promise<UserRO> {
@@ -35,6 +35,6 @@ export class UserService {
     }
     user = this.userRepository.create(data);
     await this.userRepository.save(user);
-    return user.toResponseObject();
+    return user.toResponseObject(true);
   }
 }

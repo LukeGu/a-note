@@ -47,7 +47,7 @@ export class UserEntity {
     this.password = await bcrypt.hash(this.password, 10);
   }
 
-  toResponseObject(showToken = true): UserRO {
+  toResponseObject(showToken: boolean): UserRO {
     const { id, created, username, token, notes } = this;
     const responseObj: UserRO = { id, created, username, notes };
     if (showToken) {
