@@ -1,3 +1,4 @@
+import { CommentEntity } from 'src/comment/comment.entity';
 import { UserEntity } from 'src/user/user.entity';
 import {
   Entity,
@@ -8,6 +9,7 @@ import {
   ManyToOne,
   ManyToMany,
   JoinTable,
+  OneToMany,
 } from 'typeorm';
 
 @Entity('note')
@@ -39,4 +41,11 @@ export class NoteEntity {
   @ManyToMany(type => UserEntity, { cascade: true })
   @JoinTable()
   dislikes: UserEntity[];
+
+  @OneToMany(
+    type => CommentEntity,
+    comment => comment.note,
+    { cascade: true },
+  )
+  comments: CommentEntity[];
 }
