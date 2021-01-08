@@ -1,0 +1,10 @@
+type Note {
+  id: String!
+  updated: String!
+  created: String!
+  title: String!
+  description: String!
+  author: User
+  likes: Int
+  dislikes: Int
+}
