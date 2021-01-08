@@ -3,7 +3,8 @@ type User {
   username: String!
   created: String!
   notes: [Note!]
-  bookmarks: [Note]
+  bookmarks: [Note!]
+  comments: [Comment!]
 }
 
 type Query {

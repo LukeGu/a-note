@@ -5,10 +5,11 @@ import { UserEntity } from 'src/user/user.entity';
 import { CommentEntity } from './comment.entity';
 import { CommentController } from './comment.controller';
 import { CommentService } from './comment.service';
+import { CommentResolver } from './comment.resolver';
 
 @Module({
   imports: [TypeOrmModule.forFeature([NoteEntity, UserEntity, CommentEntity])],
   controllers: [CommentController],
-  providers: [CommentService],
+  providers: [CommentService, CommentResolver],
 })
 export class CommentModule {}

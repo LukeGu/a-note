@@ -5,3 +5,7 @@ type Comment {
   #   author: User
   #   note: Note
 }
+
+type Query {
+  comments: [Comment!]
+}

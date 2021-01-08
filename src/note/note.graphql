@@ -4,7 +4,12 @@ type Note {
   created: String!
   title: String!
   description: String!
-  author: User
-  likes: Int
-  dislikes: Int
+  author: User!
+  likes: Int!
+  dislikes: Int!
+  comments: [Comment!]
+}
+
+type Query {
+  notes: [Note!]
 }
